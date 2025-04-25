@@ -1,15 +1,5 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
 import { 
   Card, 
   CardContent, 
@@ -17,23 +7,12 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  BookOpen 
-} from "lucide-react";
 import AdminLayout from "@/components/admin/AdminLayout";
+import SeriesTable from "@/components/admin/series/SeriesTable";
+import SeriesToolbar from "@/components/admin/series/SeriesToolbar";
+import SeriesFormDialog from "@/components/admin/series/SeriesFormDialog";
+import SeriesViewDialog from "@/components/admin/series/SeriesViewDialog";
+import { SeriesItemProps } from "@/types/seriesTypes";
 
 // Имитация данных о сериях книг
 const mockSeries = [
@@ -79,18 +58,13 @@ const mockSeries = [
   },
 ];
 
-interface SeriesItemProps {
-  id: number;
-  name: string;
-  author: string;
-  booksCount: number;
-  genre: string;
-  description: string;
-}
-
 const SeriesManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [series, setSeries] = useState<SeriesItemProps[]>(mockSeries);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [editingSeries, setEditingSeries] = useState<SeriesItemProps | null>(null);
+  const [viewingSeries, setViewingSeries] = useState<SeriesItemProps | null>(null);
 
   // Фильтрация серий по поисковому запросу
   const filteredSeries = series.filter(
@@ -100,9 +74,47 @@ const SeriesManagement = () => {
       item.genre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Имитация удаления серии
+  // Обработчик удаления серии
   const handleDelete = (id: number) => {
     setSeries(series.filter(item => item.id !== id));
+  };
+
+  // Обработчик открытия диалога редактирования
+  const handleEdit = (series: SeriesItemProps) => {
+    setEditingSeries(series);
+    setIsFormDialogOpen(true);
+  };
+
+  // Обработчик открытия диалога просмотра
+  const handleView = (series: SeriesItemProps) => {
+    setViewingSeries(series);
+    setIsViewDialogOpen(true);
+  };
+
+  // Обработчик добавления/редактирования серии
+  const handleSaveSeries = (seriesData: Omit<SeriesItemProps, 'id'> & { id?: number }) => {
+    if (seriesData.id) {
+      // Редактирование существующей серии
+      setSeries(currentSeries => 
+        currentSeries.map(item => 
+          item.id === seriesData.id ? { ...seriesData, id: item.id } as SeriesItemProps : item
+        )
+      );
+    } else {
+      // Добавление новой серии
+      const newId = Math.max(...series.map(item => item.id), 0) + 1;
+      setSeries(currentSeries => [
+        ...currentSeries, 
+        { ...seriesData, id: newId, booksCount: seriesData.booksCount || 0 } as SeriesItemProps
+      ]);
+    }
+    setEditingSeries(null);
+  };
+
+  // Обработчик открытия диалога добавления
+  const handleAddClick = () => {
+    setEditingSeries(null);
+    setIsFormDialogOpen(true);
   };
 
   return (
@@ -115,118 +127,37 @@ const SeriesManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mb-4">
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Поиск по названию, автору, жанру..."
-                className="pl-9"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="flex items-center">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Добавить серию
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Добавить новую серию</DialogTitle>
-                  <DialogDescription>
-                    Заполните информацию о серии книг для добавления в каталог
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">Название серии</label>
-                    <Input id="name" placeholder="Введите название серии" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="author" className="text-sm font-medium">Автор</label>
-                    <Input id="author" placeholder="Введите имя автора" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="genre" className="text-sm font-medium">Жанр</label>
-                    <Input id="genre" placeholder="Введите основной жанр" />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="description" className="text-sm font-medium">Описание</label>
-                    <textarea 
-                      id="description" 
-                      className="w-full min-h-[100px] px-3 py-2 border rounded-md resize-none" 
-                      placeholder="Введите описание серии"
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <Button>Сохранить</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <SeriesToolbar 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onAddClick={handleAddClick}
+          />
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Название</TableHead>
-                <TableHead>Автор</TableHead>
-                <TableHead>Жанр</TableHead>
-                <TableHead>Книг в серии</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSeries.length > 0 ? (
-                filteredSeries.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell>{item.author}</TableCell>
-                    <TableCell>{item.genre}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <BookOpen className="h-4 w-4 mr-2 text-gray-500" />
-                        {item.booksCount}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    Серии не найдены
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <SeriesTable 
+            filteredSeries={filteredSeries}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            onView={handleView}
+          />
         </CardContent>
       </Card>
+
+      <SeriesFormDialog 
+        isOpen={isFormDialogOpen}
+        onClose={() => setIsFormDialogOpen(false)}
+        onSave={handleSaveSeries}
+        editingSeries={editingSeries}
+      />
+
+      <SeriesViewDialog 
+        isOpen={isViewDialogOpen}
+        onClose={() => setIsViewDialogOpen(false)}
+        series={viewingSeries}
+      />
     </AdminLayout>
   );
 };
