@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,17 +13,26 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  // Проверяем, авторизован ли пользователь уже
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (token) {
+      navigate("/admin/dashboard");
+    }
+  }, [navigate]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Принимаем любые учетные данные для демо-версии
     // В реальном проекте здесь будет API-запрос
-    // Это простая демонстрационная проверка
-    if (username === "admin" && password === "password") {
-      // В реальном проекте сохраняем токен в localStorage
-      localStorage.setItem("adminToken", "demo-token");
+    if (username.trim() && password.trim()) {
+      // Создаем токен с именем пользователя для персонализации
+      localStorage.setItem("adminToken", username);
+      localStorage.setItem("adminUsername", username);
       navigate("/admin/dashboard");
     } else {
-      setError("Неверное имя пользователя или пароль");
+      setError("Пожалуйста, заполните все поля");
     }
   };
 
@@ -42,7 +51,7 @@ const AdminLogin = () => {
               <Label htmlFor="username">Имя пользователя</Label>
               <Input
                 id="username"
-                placeholder="admin"
+                placeholder="Введите имя пользователя"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -71,7 +80,7 @@ const AdminLogin = () => {
         <div className="p-4 pt-0 text-center text-sm text-muted-foreground">
           <div className="flex items-center justify-center">
             <Lock className="mr-2 h-4 w-4" />
-            <span>Демо-данные: admin / password</span>
+            <span>В демо-режиме можно использовать любые данные</span>
           </div>
         </div>
       </Card>

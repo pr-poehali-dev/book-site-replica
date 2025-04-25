@@ -1,12 +1,13 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, BookOpen, Users, 
   Tag, Settings, LogOut, List, 
-  Headphones, BarChart3 
+  Headphones, BarChart3, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 type NavItemProps = {
   to: string;
@@ -32,11 +33,22 @@ const NavItem = ({ to, icon, label, isActive }: NavItemProps) => (
 
 const AdminSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname;
+  const [username, setUsername] = useState("Администратор");
+
+  useEffect(() => {
+    // Получаем имя пользователя из localStorage при монтировании компонента
+    const storedUsername = localStorage.getItem("adminUsername");
+    if (storedUsername) {
+      setUsername(storedUsername);
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
-    // В реальном приложении здесь редирект на страницу входа
+    localStorage.removeItem("adminUsername");
+    navigate("/admin/login");
   };
 
   return (
@@ -46,6 +58,18 @@ const AdminSidebar = () => {
           <Headphones className="h-6 w-6 text-primary" />
           <span className="text-xl font-bold">АудиоКнига</span>
         </Link>
+      </div>
+
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center">
+            <User className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-medium">{username}</div>
+            <div className="text-xs text-gray-500">Администратор</div>
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
