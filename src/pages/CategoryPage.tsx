@@ -69,9 +69,14 @@ const CategoryPage = () => {
     } else if (categoryId === 'popular') {
       return popularBooks;
     } else {
-      // Для демонстрации - фильтруем по жанру, который соответствует названию категории
+      // Проверяем существование категории перед доступом к ее свойствам
+      if (!categoryMap[categoryId]) {
+        return [];
+      }
+      
+      // Фильтруем книги, у которых есть свойство genre
       return allBooks.filter(book => 
-        book.genre.toLowerCase().includes(categoryMap[categoryId]?.title.toLowerCase() || '')
+        book.genre && book.genre.toLowerCase().includes(categoryMap[categoryId].title.toLowerCase())
       );
     }
   };
