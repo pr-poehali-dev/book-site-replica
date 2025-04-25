@@ -12,6 +12,7 @@ import CategoriesManagement from './pages/admin/CategoriesManagement';
 import SeriesManagement from './pages/admin/SeriesManagement';
 import UserManagement from './pages/admin/UserManagement';
 import StatsManagement from './pages/admin/StatsManagement';
+import SettingsManagement from './pages/admin/SettingsManagement';
 import WarhammerAdminDashboard from './pages/admin/WarhammerAdminDashboard';
 import WarhammerAdminLogin from './pages/admin/WarhammerAdminLogin';
 import AudiobookHomePage from './pages/AudiobookHomePage';
@@ -36,6 +37,7 @@ function App() {
         <Route path="/admin/series" element={<SeriesManagement />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/admin/stats" element={<StatsManagement />} />
+        <Route path="/admin/settings" element={<SettingsManagement />} />
         
         {/* Warhammer административные маршруты */}
         <Route path="/warhammer/admin/login" element={<WarhammerAdminLogin />} />
