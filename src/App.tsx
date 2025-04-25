@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import CategoryPage from "./pages/CategoryPage";
+import CategoriesManagement from "./pages/admin/CategoriesManagement";
 
 const queryClient = new QueryClient();
 
@@ -19,10 +21,12 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/category/:categoryId" element={<CategoryPage />} />
           
           {/* Админ-роуты */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/categories" element={<CategoriesManagement />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
