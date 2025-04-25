@@ -1,4 +1,3 @@
-
 import { Book } from "../../types/bookTypes";
 
 export const featuredBooks: Book[] = [

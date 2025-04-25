@@ -1,4 +1,3 @@
-
 import { Category } from "../../types/bookTypes";
 
 export const categories: Category[] = [
