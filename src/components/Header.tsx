@@ -1,7 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, Heart, Headphones, User } from "lucide-react";
+import { Search, Menu, Heart, Headphones, User, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Header = () => {
@@ -38,6 +38,11 @@ const Header = () => {
             <Button variant="ghost" size="icon">
               <User />
             </Button>
+            <Link to="/admin/login">
+              <Button variant="ghost" size="icon" title="Админ-панель">
+                <Settings />
+              </Button>
+            </Link>
             <Button className="hidden sm:flex">
               Войти
             </Button>
