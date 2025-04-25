@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminLayout from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Book } from "@/types/bookTypes";
 import BookFilters from "@/components/admin/books/BookFilters";
@@ -131,7 +131,7 @@ const BooksManagement = () => {
   };
 
   return (
-    <AdminLayout>
+    <AdminLayout title="Управление книгами">
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Управление книгами</h1>
