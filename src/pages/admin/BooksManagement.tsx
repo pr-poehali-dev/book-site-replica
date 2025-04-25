@@ -2,24 +2,11 @@
 import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-  status: "published" | "draft" | "processing";
-  cover: string;
-  dateAdded: string;
-}
+import { Book } from "@/types/bookTypes";
+import BookFilters from "@/components/admin/books/BookFilters";
+import BookTable from "@/components/admin/books/BookTable";
+import AddBookDialog from "@/components/admin/books/AddBookDialog";
+import EditBookDialog from "@/components/admin/books/EditBookDialog";
 
 const mockBooks: Book[] = [
   {
@@ -76,13 +63,6 @@ const BooksManagement = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [currentBook, setCurrentBook] = useState<Book | null>(null);
-  const [newBook, setNewBook] = useState({
-    title: "",
-    author: "",
-    category: "",
-    status: "draft" as "published" | "draft" | "processing",
-    cover: ""
-  });
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -110,26 +90,20 @@ const BooksManagement = () => {
     setFilteredBooks(filtered);
   };
 
-  const handleAddBook = () => {
+  const handleAddBook = (newBookData: Omit<Book, "id" | "dateAdded">) => {
     const id = Math.random().toString(36).substring(2, 9);
     const dateAdded = new Date().toISOString().split("T")[0];
     
     const bookToAdd: Book = {
       id,
-      ...newBook,
+      ...newBookData,
       dateAdded
     };
     
-    setBooks([...books, bookToAdd]);
-    setFilteredBooks([...books, bookToAdd]);
+    const updatedBooks = [...books, bookToAdd];
+    setBooks(updatedBooks);
+    setFilteredBooks(updatedBooks);
     setIsAddDialogOpen(false);
-    setNewBook({
-      title: "",
-      author: "",
-      category: "",
-      status: "draft",
-      cover: ""
-    });
   };
 
   const handleEditBook = () => {
@@ -164,271 +138,32 @@ const BooksManagement = () => {
           <Button onClick={() => setIsAddDialogOpen(true)}>Добавить книгу</Button>
         </div>
 
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Фильтры</CardTitle>
-            <CardDescription>Найдите и отфильтруйте книги в каталоге</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Поиск по названию, автору или категории..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
-              <Select onValueChange={handleFilterByStatus} defaultValue="all">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Статус" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Все</SelectItem>
-                  <SelectItem value="published">Опубликовано</SelectItem>
-                  <SelectItem value="draft">Черновик</SelectItem>
-                  <SelectItem value="processing">В обработке</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <BookFilters 
+          searchTerm={searchTerm}
+          onSearch={handleSearch}
+          onFilterByStatus={handleFilterByStatus}
+        />
 
-        <div className="bg-white rounded-md shadow">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px]">Обложка</TableHead>
-                <TableHead>Название</TableHead>
-                <TableHead>Автор</TableHead>
-                <TableHead>Категория</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead>Дата добавления</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBooks.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                    Книги не найдены
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredBooks.map((book) => (
-                  <TableRow key={book.id}>
-                    <TableCell>
-                      <img 
-                        src={book.cover} 
-                        alt={`Обложка ${book.title}`} 
-                        className="w-12 h-16 object-cover rounded"
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{book.title}</TableCell>
-                    <TableCell>{book.author}</TableCell>
-                    <TableCell>{book.category}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        book.status === 'published' ? 'bg-green-100 text-green-800' :
-                        book.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {book.status === 'published' ? 'Опубликовано' :
-                         book.status === 'draft' ? 'Черновик' : 'В обработке'}
-                      </span>
-                    </TableCell>
-                    <TableCell>{book.dateAdded}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => openEditDialog(book)}
-                        >
-                          Изменить
-                        </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDeleteBook(book.id)}
-                        >
-                          Удалить
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <BookTable 
+          books={filteredBooks}
+          onEditBook={openEditDialog}
+          onDeleteBook={handleDeleteBook}
+        />
       </div>
 
-      {/* Диалог добавления книги */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Добавить новую книгу</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Название
-              </Label>
-              <Input
-                id="title"
-                value={newBook.title}
-                onChange={(e) => setNewBook({...newBook, title: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="author" className="text-right">
-                Автор
-              </Label>
-              <Input
-                id="author"
-                value={newBook.author}
-                onChange={(e) => setNewBook({...newBook, author: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Категория
-              </Label>
-              <Input
-                id="category"
-                value={newBook.category}
-                onChange={(e) => setNewBook({...newBook, category: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Статус
-              </Label>
-              <Select 
-                value={newBook.status}
-                onValueChange={(value: "published" | "draft" | "processing") => 
-                  setNewBook({...newBook, status: value})
-                }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Выберите статус" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="published">Опубликовано</SelectItem>
-                  <SelectItem value="draft">Черновик</SelectItem>
-                  <SelectItem value="processing">В обработке</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="cover" className="text-right">
-                URL обложки
-              </Label>
-              <Input
-                id="cover"
-                value={newBook.cover}
-                onChange={(e) => setNewBook({...newBook, cover: e.target.value})}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleAddBook}>Добавить</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddBookDialog 
+        isOpen={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onAddBook={handleAddBook}
+      />
 
-      {/* Диалог редактирования книги */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Редактировать книгу</DialogTitle>
-          </DialogHeader>
-          {currentBook && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-title" className="text-right">
-                  Название
-                </Label>
-                <Input
-                  id="edit-title"
-                  value={currentBook.title}
-                  onChange={(e) => setCurrentBook({...currentBook, title: e.target.value})}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-author" className="text-right">
-                  Автор
-                </Label>
-                <Input
-                  id="edit-author"
-                  value={currentBook.author}
-                  onChange={(e) => setCurrentBook({...currentBook, author: e.target.value})}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-category" className="text-right">
-                  Категория
-                </Label>
-                <Input
-                  id="edit-category"
-                  value={currentBook.category}
-                  onChange={(e) => setCurrentBook({...currentBook, category: e.target.value})}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-status" className="text-right">
-                  Статус
-                </Label>
-                <Select 
-                  value={currentBook.status}
-                  onValueChange={(value: "published" | "draft" | "processing") => 
-                    setCurrentBook({...currentBook, status: value})
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Выберите статус" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">Опубликовано</SelectItem>
-                    <SelectItem value="draft">Черновик</SelectItem>
-                    <SelectItem value="processing">В обработке</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-cover" className="text-right">
-                  URL обложки
-                </Label>
-                <Input
-                  id="edit-cover"
-                  value={currentBook.cover}
-                  onChange={(e) => setCurrentBook({...currentBook, cover: e.target.value})}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleEditBook}>Сохранить</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditBookDialog 
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        book={currentBook}
+        onBookChange={setCurrentBook}
+        onSaveBook={handleEditBook}
+      />
     </AdminLayout>
   );
 };
