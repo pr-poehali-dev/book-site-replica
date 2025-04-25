@@ -1,25 +1,28 @@
 
-import { ReactNode } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import React from 'react';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 
 interface StatsCardProps {
-  icon: ReactNode;
-  iconBgClass: string;
-  iconClass: string;
-  label: string;
-  value: string | number;
+  title: string;
+  value: string;
+  description: string;
+  trend: 'up' | 'down';
+  icon: React.ReactNode;
 }
 
-const StatsCard = ({ icon, iconBgClass, iconClass, label, value }: StatsCardProps) => {
+const StatsCard = ({ title, value, description, trend, icon }: StatsCardProps) => {
   return (
-    <Card className="border-warhammer-accent/20 bg-gradient-to-br from-warhammer-dark to-warhammer-secondary">
-      <CardContent className="p-6 flex items-center">
-        <div className={`${iconBgClass} p-3 rounded-full mr-4`}>
-          {React.cloneElement(icon as React.ReactElement, { className: `h-6 w-6 ${iconClass}` })}
+    <Card>
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-sm font-medium text-gray-500">{title}</CardTitle>
+          <div className="bg-gray-100 p-2 rounded-full">{icon}</div>
         </div>
-        <div>
-          <p className="text-sm text-warhammer-light/70">{label}</p>
-          <p className="text-2xl font-heading text-warhammer-light">{value}</p>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <div className={`text-xs ${trend === 'up' ? 'text-green-600' : 'text-red-600'} mt-1`}>
+          {description}
         </div>
       </CardContent>
     </Card>
